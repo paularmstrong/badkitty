@@ -132,8 +132,24 @@ class NiceDog {
                 exit();//Argh! Its not pretty, but usefull...
             }    
         }
-        call_user_func_array('r404' , $_SERVER['REQUEST_METHOD']);  
-    }   
+        call_user_func_array(array($this, 'error404'), getenv('REQUEST_METHOD'));
+    }
+
+    public function error404($foo)
+    {
+        header('HTTP/1.0 404 Not Found');
+
+        if (__DEBUG__)
+        {
+            throw new Exception($this->url . ' Not Found');
+        }
+        else
+        {
+            $klass = new C();
+            $klass->url = '/' . $this->url;
+            echo $klass->render('views/error404.php');
+        }
+    }
     
     /* Parse url arguments */
     private function parse_urls_args($matches)
