@@ -2,7 +2,7 @@
 
 require 'app/BadKitty.php';
 
-R('')->controller('test')->action('index')->on('GET');
+R('')->controller('test')->action('index')->on();
 
 class Test extends AppController
 {

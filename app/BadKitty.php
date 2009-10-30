@@ -135,29 +135,45 @@ class BadKitty
     }   
 
     /* Add url to routes */
-    public function add_url($rule, $klass, $klass_method, $http_method = 'GET')
+    public function add_url($rule, $klass, $klass_method, $http_method)
     {
-        $this->routes[] = array('/^' . str_replace('/','\/', $rule) . '$/', $klass, $klass_method, $http_method);
+        $this->routes[] = array(
+            'route' => '/^' . str_replace('/','\/', $rule) . '$/', 
+            'controller' => $klass, 
+            'action' => $klass_method, 
+            'method' => $http_method
+        );
     }
     
     /* Process requests and dispatch */
     public function dispatch()
     {
-        foreach($this->routes as $rule=>$conf) {
+        foreach($this->routes as $rule => $conf) {
             if (
-                preg_match($conf[0], $this->url, $matches) 
-                && getenv('REQUEST_METHOD') == $conf[3]
+                (
+                    preg_match($conf['route'], $this->url, $matches) 
+                    && empty($conf['method'])
+                )
+                ||
+                (
+                    preg_match($conf['route'], $this->url, $matches) 
+                    &&
+                    (
+                        !empty($conf['method'])
+                        && (getenv('REQUEST_METHOD') == $conf['method'])
+                    )
+                )
             )
             {
                 // only declared variables in url regex
                 $matches = $this->parse_urls_args($matches); 
-                $klass = new $conf[1]();
+                $klass = new $conf['controller']();
                 
                 // set the default title to the action name
-                $klass->title = ucwords($conf[2]);
+                $klass->title = ucwords($conf['action']);
                 
                 ob_start();
-                call_user_func_array(array($klass , $conf[2]), $matches);  
+                call_user_func_array(array($klass , $conf['action']), $matches);  
                 $out = ob_get_contents();
                 ob_end_clean();  
                 
@@ -249,7 +265,7 @@ class Route
         return $this;
     }
     
-    function on($http_method)
+    function on($http_method = NULL)
     {
         $this->http_method = $http_method;
         $this->bind();
