@@ -288,17 +288,17 @@ function Run()
     } 
     catch (Exception $e) 
     {
-        $app = new AppController();
-        $app->e = $e;
+        $klass = new AppController();
+        $klass->e = $e;
         if (__DEBUG__ == TRUE) 
         {
-            $app->title = 'Error';
-            echo $app->render('error.php');
+            $klass->title = 'Error';
+            echo $klass->render('error.php');
         } 
         else 
         {
-            $app->title = '404 Not Found';
-            echo $app->render('error404.php');       
+            $klass->title = '404 Not Found';
+            echo $klass->render('error404.php');       
         }
     }
     
