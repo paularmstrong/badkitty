@@ -50,8 +50,8 @@ class AppController
         } 
         else 
         {
-            $this->content = $this->open_template($this->views . '/' . $file); 
-            return $this->open_template($this->views . '/' . $this->layout_tamplate); 
+            $this->content = $this->open_template(getenv('DOCUMENT_ROOT') . '/' . $this->views . '/' . $file); 
+            return $this->open_template(getenv('DOCUMENT_ROOT') . '/' . $this->views . '/' . $this->layout_tamplate); 
         }
     }
 

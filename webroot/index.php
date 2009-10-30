@@ -3,7 +3,7 @@
 /**
  * Yeah. You're definitely going to need this.
  */
-require 'controllers/BadKitty.php';
+require getenv('DOCUMENT_ROOT') . '/controllers/BadKitty.php';
 
 /**
  * Controller names are class sensitive.
@@ -15,7 +15,7 @@ R('')->controller('Demo')->action('index')->on();
  * This saves a lot of effort.
  */
 function __autoload($class_name) {
-    require_once 'controllers/' . $class_name . '.php';
+    require_once getenv('DOCUMENT_ROOT') . '/controllers/' . $class_name . '.php';
 }
 
 /**
