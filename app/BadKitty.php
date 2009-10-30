@@ -27,29 +27,29 @@ THE SOFTWARE.
 /*
  * Controller
  */
-class AppController 
+class AppController
 {
     var $layout = TRUE;
-    var $layout_tamplate = 'layout.php';
+    var $layout_template = 'layout.php';
     var $views = 'views';
     var $headers = NULL;
     var $title = '';
-    
+   
     function __construct()
     {
     }
-    
+   
     /* Render function return php rendered in a variable */
     public function render($file)
     {
         if ($this->layout == FALSE)
         {
-            return $this->open_template($file); 
-        } 
-        else 
+            return $this->open_template($file);
+        }
+        else
         {
-            $this->content = $this->open_template(getenv('DOCUMENT_ROOT') . '/' . $this->views . '/' . $file); 
-            return $this->open_template(getenv('DOCUMENT_ROOT') . '/' . $this->views . '/' . $this->layout_tamplate); 
+            $this->content = $this->open_template(getenv('DOCUMENT_ROOT') . '/' . $this->views . '/' . $file);
+            return $this->open_template(getenv('DOCUMENT_ROOT') . '/' . $this->views . '/' . $this->layout_template);
         }
     }
 
@@ -62,34 +62,34 @@ class AppController
         {
             if (count($vars) > 0)
             {
-                foreach($vars as $key => $value){
+                foreach ($vars as $key => $value) {
                     $$key = $value;
-                }        
+                }       
             }
             require($name);
         }
         else
         {
-            throw new Exception('View ['.$name.'] Not Found');
+            throw new Exception('View [' . $name . '] Not Found');
         }
         $out = ob_get_contents();
         ob_end_clean();
         return $out;
-    }   
-    
+    }  
+   
     /* Add information in header */
     public function header($text)
     {
         $this->headers[] = $text;
-    }    
-    
-    /* 
-       Redirect page to annother place using header, 
+    }   
+   
+    /*
+       Redirect page to annother place using header,
        $now indicates that dispacther will not wait all process
     */
     public function redirect($url, $now = FALSE)
     {
-        if(!$now)
+        if (!$now)
         {
             $this->header("Location: {$url}");
         }
@@ -97,64 +97,64 @@ class AppController
         {
             header("Location: {$url}");
         }
-    } 
-    
+    }
+   
 }
 
 /*
  * Application core
  */
-class BadKitty 
+class BadKitty
 {
     var $routes = array();
-    static private $instance = NULL ;
-   
+    static private $instance = NULL;
+  
     function __construct()
     {
         if (isset($_GET['url']))
         {
-            $this->url =trim( $_GET['url'], '/');
+            $this->url = trim($_GET['url'], '/');
         }
         else
         {
             $this->url = '';
         }
     }
-      
+     
     /* Singleton */
     public function getInstance()
     {
-        if(self::$instance == NULL)
+        if (self::$instance == NULL)
         {
             self::$instance = new BadKitty();
         }
-        
+       
         return self::$instance;
-    }   
+    }  
 
     /* Add url to routes */
     public function add_url($rule, $klass, $klass_method, $http_method)
     {
         $this->routes[] = array(
-            'route' => '/^' . str_replace('/','\/', $rule) . '$/', 
-            'controller' => $klass, 
-            'action' => $klass_method, 
+            'route' => '/^' . str_replace('/','\/', $rule) . '$/',
+            'controller' => $klass,
+            'action' => $klass_method,
             'method' => $http_method
         );
     }
-    
+   
     /* Process requests and dispatch */
     public function dispatch()
     {
-        foreach($this->routes as $rule => $conf) {
+        foreach ($this->routes as $rule => $conf) {
             if (
                 (
-                    preg_match($conf['route'], $this->url, $matches) 
+                    preg_match($conf['route'], $this->url, $matches)
                     && empty($conf['method'])
                 )
                 ||
                 (
-                    preg_match($conf['route'], $this->url, $matches) 
+                    preg_match($conf['route'], $this->url, $matches)
                     &&
                     (
                         !empty($conf['method'])
@@ -164,31 +164,31 @@ class BadKitty
             )
             {
                 // only declared variables in url regex
-                $matches = $this->parse_urls_args($matches); 
+                $matches = $this->parse_urls_args($matches);
                 $klass = new $conf['controller']();
-                
+               
                 // set the default title to the action name
                 $klass->title = ucwords($conf['action']);
-                
+               
                 ob_start();
-                call_user_func_array(array($klass , $conf['action']), $matches);  
+                call_user_func_array(array($klass , $conf['action']), $matches); 
                 $out = ob_get_contents();
-                ob_end_clean();  
-                
+                ob_end_clean(); 
+               
                 if (count($klass->headers) > 0)
                 {
-                    foreach($klass->headers as $header){
+                    foreach ($klass->headers as $header){
                         header($header);
                     }
-                } 
-                
-                print $out;      
-                
+                }
+               
+                print $out;     
+               
                 // Argh! Its not pretty, but usefull...
-                exit(); 
-            }    
+                exit();
+            }   
         }
-        
+       
         call_user_func_array(array($this, 'error'), getenv('REQUEST_METHOD'));
     }
 
@@ -208,69 +208,69 @@ class BadKitty
             echo $klass->render('error404.php');
         }
     }
-    
+   
     /* Parse url arguments */
     private function parse_urls_args($matches)
     {
         $first = array_shift($matches);
         $new_matches = array();
-        
-        foreach($matches as $k=>$match)
+       
+        foreach ($matches as $k=>$match)
         {
             if (is_string($k))
             {
                 $new_matches[$k]=$match;
             }
         }
-        
+       
         return $new_matches;
     }
 }
- 
+
 /*
  *  New routes,  just sugar!
- *  R('','Test','index','GET'); turns: 
+ *  R('','Test','index','GET'); turns:
  *  R('')->controller('test')->action('index')->on('GET');
  * Thanks to:  Rafael S. Souza <rafael.ssouza [__at__] gmail.com>
  */
- 
+
 function R($pattern)
 {
     return new Route($pattern);
 }
 
-class Route 
+class Route
 {
     var $pattern;
-    var $controller;    
+    var $controller;   
     var $action;
     var $http_method = 'GET';
-    
+   
     function __construct($pattern)
     {
         $this->pattern = $pattern;
         return $this;
     }
-    
+   
     function controller($controller)
     {
         $this->controller = $controller;
         return $this;
     }
-    
+   
     function action($action)
     {
         $this->action = $action;
         return $this;
     }
-    
+   
     function on($http_method = NULL)
     {
         $this->http_method = $http_method;
         $this->bind();
         return $this;
     }
-    
+   
     function bind()
     {
         $router = BadKitty::getInstance()->add_url($this->pattern, $this->controller, $this->action, $this->http_method);
@@ -282,25 +282,25 @@ class Route
  */
 function Run()
 {
-    try 
+    try
     {
         BadKitty::getInstance()->dispatch();
-    } 
-    catch (Exception $e) 
+    }
+    catch (Exception $e)
     {
         $klass = new AppController();
         $klass->e = $e;
-        if (__DEBUG__ == TRUE) 
+        if (__DEBUG__ == TRUE)
         {
             $klass->title = 'Error';
             echo $klass->render('error.php');
-        } 
-        else 
+        }
+        else
         {
             $klass->title = '404 Not Found';
-            echo $klass->render('error404.php');       
+            echo $klass->render('error404.php');      
         }
     }
-    
+   
 }
 ?>
