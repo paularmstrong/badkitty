@@ -204,6 +204,7 @@ class BadKitty
         {
             $klass = new AppController();
             $klass->url = '/' . $this->url;
+            $klass->url = '404 Not Found';
             echo $klass->render('error404.php');
         }
     }
@@ -291,10 +292,12 @@ function Run()
         $app->e = $e;
         if (__DEBUG__ == TRUE) 
         {
+            $app->title = 'Error';
             echo $app->render('error.php');
         } 
         else 
         {
+            $app->title = '404 Not Found';
             echo $app->render('error404.php');       
         }
     }
