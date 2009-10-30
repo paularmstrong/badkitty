@@ -3,7 +3,7 @@
 /**
  * Yeah. You're definitely going to need this.
  */
-require 'app/BadKitty.php';
+require 'controllers/BadKitty.php';
 
 /**
  * Controller names are class sensitive.
