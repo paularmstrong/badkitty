@@ -24,39 +24,54 @@ THE SOFTWARE.
 */
 
 
-define('__DEBUG__',true);
+define('__DEBUG__', TRUE);
 
 /*
  * Controller
  */
-class C {
-    var $layout = true;
-    var $layout_tamplate = 'views/layout.php';
-    var $headers;
+class AppController 
+{
+    var $layout = TRUE;
+    var $layout_tamplate = 'layout.php';
+    var $views = 'views';
+    var $headers = NULL;
+    var $title = '';
+    
+    function __construct()
+    {
+    }
     
     /* Render function return php rendered in a variable */
     public function render($file)
     {
-        if ($this->layout==false){
+        if ($this->layout == FALSE)
+        {
             return $this->open_template($file); 
-        } else {
-           $this->content = $this->open_template($file); 
-           return $this->open_template($this->layout_tamplate); 
+        } 
+        else 
+        {
+            $this->content = $this->open_template($this->views . '/' . $file); 
+            return $this->open_template($this->views . '/' . $this->layout_tamplate); 
         }
     }
-    
+
     /* Open template to render and return php rendered in a variable using ob_start/ob_end_clean */
     private function open_template($name)
     {
         $vars = get_object_vars($this);
         ob_start();
-        if (file_exists($name)){
-            if (count($vars)>0)
+        if (file_exists($name))
+        {
+            if (count($vars) > 0)
+            {
                 foreach($vars as $key => $value){
                     $$key = $value;
                 }        
+            }
             require($name);
-        } else {
+        }
+        else
+        {
             throw new Exception('View ['.$name.'] Not Found');
         }
         $out = ob_get_contents();
@@ -65,7 +80,8 @@ class C {
     }   
     
     /* Add information in header */
-    public function header($text){
+    public function header($text)
+    {
         $this->headers[] = $text;
     }    
     
@@ -73,11 +89,16 @@ class C {
        Redirect page to annother place using header, 
        $now indicates that dispacther will not wait all process
     */
-    public function redirect($url,$now=false)
+    public function redirect($url, $now = FALSE)
     {
         if(!$now)
-        $this->header("Location: {$url}");
-        else header("Location: {$url}");
+        {
+            $this->header("Location: {$url}");
+        }
+        else
+        {
+            header("Location: {$url}");
+        }
     } 
     
 }
@@ -85,57 +106,79 @@ class C {
 /*
  * Application core
  */
-class NiceDog {
+class BadKitty 
+{
     var $routes = array();
     static private $instance = NULL ;
    
     function __construct()
     {
         if (isset($_GET['url']))
+        {
             $this->url =trim( $_GET['url'], '/');
-        else $this->url = '';
+        }
+        else
+        {
+            $this->url = '';
+        }
     }
       
     /* Singleton */
     public function getInstance()
-      {
+    {
         if(self::$instance == NULL)
         {
-                self::$instance = new NiceDog();
+            self::$instance = new BadKitty();
         }
-             return self::$instance;
-       }   
+        
+        return self::$instance;
+    }   
 
     /* Add url to routes */
     public function add_url($rule, $klass, $klass_method, $http_method = 'GET')
     {
-        $this->routes[] = array('/^' . str_replace('/','\/',$rule) . '$/', $klass,$klass_method,$http_method);
+        $this->routes[] = array('/^' . str_replace('/','\/', $rule) . '$/', $klass, $klass_method, $http_method);
     }
     
     /* Process requests and dispatch */
     public function dispatch()
     {
         foreach($this->routes as $rule=>$conf) {
-            if (preg_match($conf[0], $this->url, $matches) and $_SERVER['REQUEST_METHOD'] == $conf[3]){
-                $matches = $this->parse_urls_args($matches);//Only declared variables in url regex
+            if (
+                preg_match($conf[0], $this->url, $matches) 
+                && getenv('REQUEST_METHOD') == $conf[3]
+            )
+            {
+                // only declared variables in url regex
+                $matches = $this->parse_urls_args($matches); 
                 $klass = new $conf[1]();
+                
+                // set the default title to the action name
+                $klass->title = ucwords($conf[2]);
+                
                 ob_start();
-                call_user_func_array(array($klass , $conf[2]),$matches);  
+                call_user_func_array(array($klass , $conf[2]), $matches);  
                 $out = ob_get_contents();
                 ob_end_clean();  
-                if (count($klass->headers)>0){
+                
+                if (count($klass->headers) > 0)
+                {
                     foreach($klass->headers as $header){
                         header($header);
                     }
                 } 
-                print $out;                             
-                exit();//Argh! Its not pretty, but usefull...
+                
+                print $out;      
+                
+                // Argh! Its not pretty, but usefull...
+                exit(); 
             }    
         }
-        call_user_func_array(array($this, 'error404'), getenv('REQUEST_METHOD'));
+        
+        call_user_func_array(array($this, 'error'), getenv('REQUEST_METHOD'));
     }
 
-    public function error404($foo)
+    public function error($method = NULL)
     {
         header('HTTP/1.0 404 Not Found');
 
@@ -145,9 +188,9 @@ class NiceDog {
         }
         else
         {
-            $klass = new C();
+            $klass = new AppController();
             $klass->url = '/' . $this->url;
-            echo $klass->render('views/error404.php');
+            echo $klass->render('error404.php');
         }
     }
     
@@ -156,11 +199,15 @@ class NiceDog {
     {
         $first = array_shift($matches);
         $new_matches = array();
-        foreach($matches as $k=>$match){
-            if (is_string($k)){
+        
+        foreach($matches as $k=>$match)
+        {
+            if (is_string($k))
+            {
                 $new_matches[$k]=$match;
             }
         }
+        
         return $new_matches;
     }
 }
@@ -172,37 +219,46 @@ class NiceDog {
  * Thanks to:  Rafael S. Souza <rafael.ssouza [__at__] gmail.com>
  */
  
-function R($pattern){
-       return new Route($pattern);
+function R($pattern)
+{
+    return new Route($pattern);
 }
-class Route{
+
+class Route 
+{
     var $pattern;
     var $controller;    
     var $action;
     var $http_method = 'GET';
-    function __construct($pattern){
+    
+    function __construct($pattern)
+    {
         $this->pattern = $pattern;
         return $this;
     }
     
-    function controller($controller){
+    function controller($controller)
+    {
         $this->controller = $controller;
         return $this;
     }
     
-    function action($action){
+    function action($action)
+    {
         $this->action = $action;
         return $this;
     }
     
-    function on($http_method){
+    function on($http_method)
+    {
         $this->http_method = $http_method;
         $this->bind();
         return $this;
     }
     
-    function bind(){
-        $router = NiceDog::getInstance()->add_url($this->pattern,$this->controller,$this->action,$this->http_method);
+    function bind()
+    {
+        $router = BadKitty::getInstance()->add_url($this->pattern, $this->controller, $this->action, $this->http_method);
     }
 }
 
@@ -211,40 +267,23 @@ class Route{
  */
 function Run()
 {
-    try {
-        NiceDog::getInstance()->dispatch();
-    } catch (Exception $e) {
-        if (__DEBUG__==true) {
-        ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-    <head>
-        <title>Error!</title>
-    </head>
-    <body>
-        <h1>Caught exception: <?= $e->getMessage(); ?></h1>
-        <h2>File: <?= $e->getFile()?></h2>
-        <h2>Line: <?= $e->getLine()?></h2>
-        <h3>Trace</h3>
-        <pre>
-        <?php print_r ($e->getTraceAsString()); ?>
-        </pre>
-        <h3>Exception Object</h3>
-        <pre>
-        <?php print_r ($e); ?>
-        </pre>
-        <h3>Var Dump</h3>
-        <pre>
-        <?php debug_print_backtrace (); ?>
-        </pre>
-    </body>
-</html>        
-        <?php
-       } else {
-        echo 'Oops';       
-       }
+    try 
+    {
+        BadKitty::getInstance()->dispatch();
+    } 
+    catch (Exception $e) 
+    {
+        $app = new AppController();
+        $app->e = $e;
+        if (__DEBUG__ == TRUE) 
+        {
+            echo $app->render('error.php');
+        } 
+        else 
+        {
+            echo $app->render('error404.php');       
+        }
     }
-
+    
 }
 ?>
