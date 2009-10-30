@@ -24,8 +24,6 @@ THE SOFTWARE.
 */
 
 
-define('__DEBUG__', TRUE);
-
 /*
  * Controller
  */

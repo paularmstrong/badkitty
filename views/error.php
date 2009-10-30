@@ -1,3 +1,9 @@
+<?php
+/**
+ * Debug Error View.
+ * You should only see this if __DEBUG__ is TRUE in config/bootstrap.
+ */
+?>
 <h1>Caught exception: <?= $this->e->getMessage(); ?></h1>
 <h2>File: <?= $this->e->getFile()?></h2>
 <h2>Line: <?= $this->e->getLine()?></h2>
