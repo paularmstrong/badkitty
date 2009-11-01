@@ -13,6 +13,12 @@ class AppController
    
     function __construct()
     {
+        foreach ($this->models as $key => $value) 
+        {
+            require_once(getenv('DOCUMENT_ROOT') . '/models/' . $value . '.php');
+            $modelClass = $value . 'Model';
+            $this->{$value} = new $modelClass();
+        }
     }
    
     /* Render function return php rendered in a variable */

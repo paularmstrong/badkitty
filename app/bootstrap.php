@@ -2,6 +2,7 @@
 
 require_once('BadKitty.php');
 require_once('AppController.php');
+require_once('AppModel.php');
 require_once('Router.php');
 
 include('../config/bootstrap.php');

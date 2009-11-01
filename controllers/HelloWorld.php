@@ -4,7 +4,9 @@
  */
 class HelloWorld extends AppController
 {
-
+    
+    public $models = array('HelloWorld');
+    
     public function index()
     {
         $this->foo = 'Hello World';
