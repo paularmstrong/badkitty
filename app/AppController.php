@@ -20,7 +20,7 @@ class AppController
     {
         if ($this->layout == FALSE)
         {
-            return $this->open_template($file);
+            return $this->open_template(getenv('DOCUMENT_ROOT') . '/' . $this->views . '/' . $file);
         }
         else
         {
